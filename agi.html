@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, height=844, initial-scale=1.0, user-scalable=no">
+  <title>智药云APP</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome图标 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 配置Tailwind自定义主题 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4CAF50', // 主色调-绿色（医疗健康）
+            secondary: '#E8F5E9', // 辅助色-浅绿
+            dark: '#2E7D32', // 深绿
+            gray: {
+              light: '#F5F5F5',
+              medium: '#E0E0E0',
+              dark: '#757575'
+            },
+            warning: '#FF9800',
+            danger: '#F44336',
+            normal: '#4CAF50',
+            abnormal: '#F44336'
+          },
+          fontFamily: {
+            sans: ['PingFang SC', 'Helvetica Neue', 'Arial', 'sans-serif']
+          },
+          // 固定华为手机尺寸
+          screens: {
+            'huawei': '390px',
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .input-focus {
+        @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+      }
+      .btn-primary {
+        @apply bg-primary text-white py-3 rounded-lg font-medium transition-all hover:bg-dark active:scale-95;
+      }
+      .nav-item {
+        @apply flex flex-col items-center justify-center text-gray-dark transition-colors;
+      }
+      .nav-item.active {
+        @apply text-primary;
+      }
+      .card-shadow {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      .nav-active {
+        @apply text-primary;
+      }
+      .page-transition {
+        @apply transition-all duration-300 ease-in-out;
+      }
+      .report-table {
+        @apply w-full border-collapse text-sm;
+      }
+      .report-th {
+        @apply border border-gray-200 p-2 bg-gray-50 text-left text-gray-700 font-medium;
+      }
+      .report-td {
+        @apply border border-gray-200 p-2 text-gray-800;
+      }
+    }
+    
+    /* 全局样式 - 固定华为手机尺寸，显示滚动条 */
+    body {
+      width: 390px;
+      height: 844px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      background-color: #f9f9f9; /* 统一背景色，避免白框 */
+    }
+    
+    /* 自定义滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* 页面容器统一尺寸 */
+    #login-page, #register-page {
+      width: 390px;
+      height: 844px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      background-color: #f9f9f9; /* 匹配body背景 */
+    }
+    
+    /* 主应用容器 - 允许滚动 */
+    #app-main {
+      width: 390px;
+      height: 844px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: #f9f9f9; /* 匹配body背景 */
+    }
+    
+    /* 主要内容区域 - 允许滚动并显示滚动条 */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px;
+      background-color: #f9f9f9;
+    }
+    
+    /* 修复：报告详情弹窗样式 - 关键修改 */
+    #report-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      display: none; /* 改为display:none，彻底隐藏 */
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 10px; /* 优化内边距 */
+      overflow-y: auto;
+    }
+    #report-modal.show {
+      display: flex; /* 显示时才用flex */
+    }
+    .report-modal-content {
+      width: 100%;
+      max-width: 350px; /* 改为max-width适配 */
+      max-height: calc(100vh - 40px); /* 适配视口高度 */
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      overflow-y: auto;
+      margin: 0 auto; /* 居中 */
+    }
+    .modal-close {
+      position: sticky;
+      top: 0;
+      margin: 0 0 15px auto; /* 调整margin */
+      display: block;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      padding: 0;
+    }
+    .modal-close i {
+      color: #666;
+      font-size: 16px;
+    }
+    .modal-close:hover {
+      background-color: #e0e0e0;
+    }
+
+    /* 上传报告页面样式 */
+    .upload-card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body class="bg-neutral min-h-screen font-sans text-gray-800">
+  <!-- 登录页面 - 初始显示 -->
+  <div id="login-page" class="page-transition min-h-screen flex flex-col items-center justify-center px-4 py-8">
+    <div class="w-full max-w-md bg-white rounded-xl p-6 card-shadow">
+      <div class="text-center mb-8">
+        <i class="fa fa-medkit text-5xl text-primary mb-4"></i>
+        <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800">智药云</h1>
+        <p class="text-gray-500">智能用药管理，守护您的健康</p>
+      </div>
+      
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="login-username">用户名</label>
+          <input type="text" id="login-username" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                 placeholder="请输入用户名" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="login-password">密码</label>
+          <input type="password" id="login-password" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                 placeholder="请输入密码" required>
+        </div>
+        
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center">
+            <input type="checkbox" class="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary">
+            <span class="ml-2 text-gray-600">记住我</span>
+          </label>
+          <a href="#" class="text-primary hover:text-primary/80">忘记密码？</a>
+        </div>
+        
+        <button type="submit" 
+                class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+          登录
+        </button>
+        
+        <div class="text-center text-sm text-gray-600 mt-4">
+          还没有账号？ 
+          <a href="#" id="to-register" class="text-primary font-medium hover:text-primary/80">立即注册</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 注册页面 - 初始隐藏 -->
+  <div id="register-page" class="page-transition min-h-screen flex flex-col items-center justify-center px-4 py-8" style="display: none;">
+    <div class="w-full max-w-md bg-white rounded-xl p-6 card-shadow">
+      <div class="text-center mb-8">
+        <i class="fa fa-user-plus text-5xl text-primary mb-4"></i>
+        <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800">账号注册</h1>
+        <p class="text-gray-500">创建您的智药云账号</p>
+      </div>
+      
+      <form id="register-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="reg-username">用户名</label>
+          <input type="text" id="reg-username" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                 placeholder="请设置用户名" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="reg-phone">手机号码</label>
+          <input type="tel" id="reg-phone" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                 placeholder="请输入手机号" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="reg-password">密码</label>
+          <input type="password" id="reg-password" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                 placeholder="请设置密码（6-16位）" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="reg-confirm">确认密码</label>
+          <input type="password" id="reg-confirm" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                 placeholder="请再次输入密码" required>
+        </div>
+        
+        <div class="flex items-center text-sm">
+          <input type="checkbox" id="agree-terms" class="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" required>
+          <label for="agree-terms" class="ml-2 text-gray-600">
+            我已阅读并同意<a href="#" class="text-primary">《用户协议》</a>和<a href="#" class="text-primary">《隐私政策》</a>
+          </label>
+        </div>
+        
+        <button type="submit" 
+                class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+          注册账号
+        </button>
+        
+        <div class="text-center text-sm text-gray-600 mt-4">
+          已有账号？ 
+          <a href="#" id="to-login" class="text-primary font-medium hover:text-primary/80">立即登录</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 主应用界面 - 初始隐藏 -->
+  <div id="app-main" class="page-transition" style="display: none;">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm px-4 py-3 border-b border-gray-200 z-10">
+      <h1 class="text-xl font-bold text-gray-800" id="page-title">今日用药提醒</h1>
+    </header>
+    
+    <!-- 主要内容区域 -->
+    <main class="flex-1 overflow-auto bg-neutral p-4">
+      <!-- 首页 - 用药提醒 -->
+      <section id="home-page" class="space-y-4">
+        <div class="bg-white rounded-lg p-4 card-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-bold text-lg text-gray-800">今日用药清单</h2>
+            <span class="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">2025-12-15</span>
+          </div>
+          
+          <!-- 用药提醒列表 -->
+          <div class="space-y-3">
+            <div class="border-l-4 border-primary pl-3 py-2 bg-primary/5 rounded-r-lg">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium">布洛芬缓释胶囊</h3>
+                  <p class="text-sm text-gray-500">解热镇痛 · 每粒0.4g</p>
+                </div>
+                <span class="text-sm bg-warning/10 text-warning px-2 py-0.5 rounded">即将服用</span>
+              </div>
+              <div class="flex items-center mt-2 text-sm text-gray-600">
+                <i class="fa fa-clock-o mr-1"></i>
+                <span>服用时间：08:00、18:00</span>
+                <span class="mx-3">|</span>
+                <i class="fa fa-medkit mr-1"></i>
+                <span>用量：1粒/次，每日2次</span>
+              </div>
+            </div>
+            
+            <div class="border-l-4 border-secondary pl-3 py-2 bg-secondary/5 rounded-r-lg">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium">复方甘草片</h3>
+                  <p class="text-sm text-gray-500">镇咳祛痰 · 每片0.2g</p>
+                </div>
+                <span class="text-sm bg-green-100 text-green-600 px-2 py-0.5 rounded">已服用</span>
+              </div>
+              <div class="flex items-center mt-2 text-sm text-gray-600">
+                <i class="fa fa-clock-o mr-1"></i>
+                <span>服用时间：06:30</span>
+                <span class="mx-3">|</span>
+                <i class="fa fa-medkit mr-1"></i>
+                <span>用量：3片/次，每日3次</span>
+              </div>
+            </div>
+            
+            <div class="border-l-4 border-gray-300 pl-3 py-2 bg-gray-50 rounded-r-lg">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium">维生素C片</h3>
+                  <p class="text-sm text-gray-500">补充维生素 · 每片0.1g</p>
+                </div>
+                <span class="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded">未到时间</span>
+              </div>
+              <div class="flex items-center mt-2 text-sm text-gray-600">
+                <i class="fa fa-clock-o mr-1"></i>
+                <span>服用时间：12:00</span>
+                <span class="mx-3">|</span>
+                <i class="fa fa-medkit mr-1"></i>
+                <span>用量：1片/次，每日1次</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 用药小贴士 -->
+        <div class="bg-white rounded-lg p-4 card-shadow">
+          <h2 class="font-bold text-lg text-gray-800 mb-3">用药小贴士</h2>
+          <ul class="space-y-2 text-gray-700">
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+              <span>布洛芬建议饭后服用，减少胃肠道刺激</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+              <span>服用药物期间请避免饮酒</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-primary mt-1 mr-2"></i>
+              <span>如出现不适症状，请立即停药并咨询医生</span>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- 常规用药知识科普 -->
+        <div class="bg-white rounded-lg p-4 card-shadow">
+          <h2 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
+            <i class="fa fa-book-medical text-primary mr-2"></i>
+            常规用药知识科普
+          </h2>
+          
+          <!-- 用药基本原则 -->
+          <div class="mb-4">
+            <h3 class="font-medium text-gray-800 mb-2">一、用药基本原则</h3>
+            <ul class="space-y-2 text-gray-700 pl-4">
+              <li class="flex items-start">
+                <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                <span><strong>遵医嘱用药：</strong>严格按照医生的处方和说明书服用，不擅自增减剂量或停药</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                <span><strong>按时服药：</strong>固定时间服药，保证血药浓度稳定，提高疗效</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                <span><strong>规范储存：</strong>药品需按要求储存，避免阳光直射、高温潮湿环境</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                <span><strong>核对信息：</strong>用药前核对药品名称、有效期、用法用量</span>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- 不同剂型服用方法 -->
+          <div class="mb-4">
+            <h3 class="font-medium text-gray-800 mb-2">二、不同剂型服用方法</h3>
+            <div class="space-y-3 text-gray-700">
+              <div class="bg-gray-50 p-3 rounded-lg">
+                <p class="font-medium">💊 口服固体制剂（片剂、胶囊）</p>
+                <p class="text-sm mt-1">用温水送服，不宜用茶水、咖啡、牛奶等送服；胶囊不可打开服用；肠溶片不可嚼碎</p>
+              </div>
+              <div class="bg-gray-50 p-3 rounded-lg">
+                <p class="font-medium">💧 口服液体制剂（糖浆、混悬液）</p>
+                <p class="text-sm mt-1">服用前摇匀；使用量杯准确量取；止咳糖浆服用后30分钟内不宜喝水</p>
+              </div>
+              <div class="bg-gray-50 p-3 rounded-lg">
+                <p class="font-medium">🌡️ 外用制剂（软膏、喷雾）</p>
+                <p class="text-sm mt-1">外用药品切勿口服；涂抹前清洁患处；避免接触眼睛和黏膜</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 特殊人群用药 -->
+          <div class="mb-4">
+            <h3 class="font-medium text-gray-800 mb-2">三、特殊人群用药注意</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-primary/5 p-3 rounded-lg">
+                <p class="font-medium text-sm">👶 儿童用药</p>
+                <p class="text-xs mt-1 text-gray-700">按年龄/体重计算剂量；选用儿童专用剂型；监护人监督服用</p>
+              </div>
+              <div class="bg-primary/5 p-3 rounded-lg">
+                <p class="font-medium text-sm">👵 老年人用药</p>
+                <p class="text-xs mt-1 text-gray-700">剂量酌情减少；注意药物相互作用；定期复查肝肾功能</p>
+              </div>
+              <div class="bg-primary/5 p-3 rounded-lg">
+                <p class="font-medium text-sm">🤰 孕妇用药</p>
+                <p class="text-xs mt-1 text-gray-700">避免自行用药；遵医嘱选择安全等级高的药物；权衡利弊使用</p>
+              </div>
+              <div class="bg-primary/5 p-3 rounded-lg">
+                <p class="font-medium text-sm">💼 肝肾功能不全者</p>
+                <p class="text-xs mt-1 text-gray-700">需调整剂量；避免使用肝肾毒性药物；定期监测肝肾功能</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 用药安全警示 -->
+          <div>
+            <h3 class="font-medium text-gray-800 mb-2">四、用药安全警示</h3>
+            <div class="bg-warning/10 border-l-4 border-warning p-3 rounded-r-lg">
+              <ul class="space-y-1 text-gray-700 text-sm">
+                <li>• 不可随意联用多种感冒药，避免成分叠加导致过量</li>
+                <li>• 抗生素不可滥用，病毒性感冒无需使用抗生素</li>
+                <li>• 过期药品请勿使用，药效下降且可能产生有害物质</li>
+                <li>• 服药期间如出现严重不良反应，立即停药并就医</li>
+                <li>• 处方药需凭医师处方购买和使用，不可自行调整</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 用药记录统计 -->
+        <div class="bg-white rounded-lg p-4 card-shadow">
+          <h2 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
+            <i class="fa fa-bar-chart text-primary mr-2"></i>
+            近期用药统计
+          </h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-gray-50 p-4 rounded-lg text-center">
+              <p class="text-3xl font-bold text-primary">92%</p>
+              <p class="text-sm text-gray-600 mt-1">本月按时服药率</p>
+              <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-primary rounded-full" style="width: 92%"></div>
+              </div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg text-center">
+              <p class="text-3xl font-bold text-primary">8</p>
+              <p class="text-sm text-gray-600 mt-1">本月服用药品种类</p>
+              <div class="mt-2 flex justify-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-primary"></span>
+                <span class="w-3 h-3 rounded-full bg-secondary"></span>
+                <span class="w-3 h-3 rounded-full bg-warning"></span>
+                <span class="w-3 h-3 rounded-full bg-gray-400"></span>
+                <span class="w-3 h-3 rounded-full bg-primary/70"></span>
+                <span class="w-3 h-3 rounded-full bg-secondary/70"></span>
+                <span class="w-3 h-3 rounded-full bg-warning/70"></span>
+                <span class="w-3 h-3 rounded-full bg-gray-400/70"></span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 text-sm text-gray-600">
+            <p class="flex items-center">
+              <i class="fa fa-calendar-check-o text-primary mr-2"></i>
+              最近一次服药：2025-12-15 06:30（复方甘草片）
+            </p>
+            <p class="flex items-center mt-1">
+              <i class="fa fa-calendar-times-o text-warning mr-2"></i>
+              未按时服药次数：本月2次（布洛芬、维生素C）
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI药品助手页面 -->
+      <section id="ai-assistant-page" class="hidden h-full flex flex-col">
+        <div class="bg-white rounded-lg shadow-sm mb-4 flex-1 flex flex-col h-full">
+          <div class="p-3 border-b border-gray-200">
+            <h2 class="font-medium text-gray-800">AI药品助手</h2>
+            <p class="text-sm text-gray-500">专业解答药品相关问题</p>
+          </div>
+          
+          <!-- 聊天区域 -->
+          <div id="chat-messages" class="flex-1 p-4 overflow-auto space-y-4">
+            <div class="flex items-start">
+              <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white mr-2">
+                <i class="fa fa-robot"></i>
+              </div>
+              <div class="bg-gray-100 rounded-lg px-4 py-2 max-w-[80%]">
+                <p class="text-gray-800">您好！我是AI药品助手，请问有什么可以帮助您的？</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 输入区域 -->
+          <div class="p-3 border-t border-gray-200">
+            <form id="chat-form" class="flex items-center space-x-2">
+              <input type="text" id="chat-input" 
+                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg input-focus"
+                     placeholder="请输入您的问题（如：布洛芬的用法用量）" required>
+              <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 transition-colors">
+                <i class="fa fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- 身体报告页面 -->
+      <section id="report-page" class="hidden">
+        <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-bold text-lg text-gray-800">身体报告列表</h2>
+            <!-- 同步报告按钮 -->
+            <button id="sync-report-btn" class="text-primary text-sm flex items-center hover:text-primary/80">
+              <i class="fa fa-refresh mr-1"></i> 同步报告
+            </button>
+          </div>
+          
+          <div class="space-y-3">
+            <div class="border border-gray-200 rounded-lg p-3 hover:border-primary transition-colors">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium">2025年度体检报告</h3>
+                  <p class="text-sm text-gray-500">体检中心：市第一人民医院</p>
+                </div>
+                <span class="text-sm text-gray-500">2025-11-20</span>
+              </div>
+              <div class="mt-2 flex items-center text-sm">
+                <button class="view-report text-primary mr-4 flex items-center hover:text-primary/80" data-report-type="annual">
+                  <i class="fa fa-eye mr-1"></i> 查看
+                </button>
+                <button class="text-gray-600 flex items-center hover:text-gray-800">
+                  <i class="fa fa-download mr-1"></i> 下载
+                </button>
+              </div>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-3 hover:border-primary transition-colors">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium">血常规检查报告</h3>
+                  <p class="text-sm text-gray-500">检查医院：市中心医院</p>
+                </div>
+                <span class="text-sm text-gray-500">2025-10-15</span>
+              </div>
+              <div class="mt-2 flex items-center text-sm">
+                <button class="view-report text-primary mr-4 flex items-center hover:text-primary/80" data-report-type="blood">
+                  <i class="fa fa-eye mr-1"></i> 查看
+                </button>
+                <button class="text-gray-600 flex items-center hover:text-gray-800">
+                  <i class="fa fa-download mr-1"></i> 下载
+                </button>
+              </div>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-3 hover:border-primary transition-colors">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium">肝功能检查报告</h3>
+                  <p class="text-sm text-gray-500">检查医院：市中医院</p>
+                </div>
+                <span class="text-sm text-gray-500">2025-09-05</span>
+              </div>
+              <div class="mt-2 flex items-center text-sm">
+                <button class="view-report text-primary mr-4 flex items-center hover:text-primary/80" data-report-type="liver">
+                  <i class="fa fa-eye mr-1"></i> 查看
+                </button>
+                <button class="text-gray-600 flex items-center hover:text-gray-800">
+                  <i class="fa fa-download mr-1"></i> 下载
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 card-shadow">
+          <h2 class="font-bold text-lg text-gray-800 mb-3">报告解读</h2>
+          <div class="text-gray-700 space-y-2">
+            <p>您的各项检查指标基本正常，仅血常规显示轻微贫血，建议：</p>
+            <ul class="list-disc pl-5 space-y-1 text-sm">
+              <li>日常饮食增加含铁食物摄入（红肉、动物肝脏、菠菜等）</li>
+              <li>补充维生素C促进铁吸收</li>
+              <li>3个月后复查血常规</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 上传报告页面 - 初始隐藏 -->
+      <section id="upload-report-page" class="hidden">
+        <!-- 顶部导航栏（仿APP原生返回+标题） -->
+        <div class="fixed top-0 left-0 right-0 bg-white h-14 flex items-center px-4 border-b border-gray-200 z-20" style="width: 390px;">
+          <button id="upload-back-btn" class="flex items-center mr-3">
+            <i class="fa fa-chevron-left text-gray-800 text-lg"></i>
+            <span class="text-gray-800 font-medium">返回</span>
+          </button>
+          <h1 class="text-lg font-medium text-gray-800">同步体检报告</h1>
+        </div>
+
+        <!-- 主体内容（适配顶部导航高度） -->
+        <div class="pt-14 pb-16 px-4">
+          <!-- 上传方式选择（仿主流APP分段式） -->
+          <div class="bg-white rounded-lg p-4 card-shadow mb-4 mt-2">
+            <h2 class="font-medium text-gray-800 mb-3">选择上传方式</h2>
+            <div class="grid grid-cols-2 gap-3">
+              <!-- 拍照上传 -->
+              <div class="border border-gray-200 rounded-lg p-4 text-center hover:border-primary hover:bg-primary/5 transition-all cursor-pointer">
+                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i class="fa fa-camera text-primary text-xl"></i>
+                </div>
+                <p class="text-sm text-gray-800">拍照上传</p>
+                <p class="text-xs text-gray-500 mt-1">拍摄纸质报告</p>
+              </div>
+              <!-- 文件上传 -->
+              <div class="border border-primary bg-primary/5 rounded-lg p-4 text-center hover:bg-primary/10 transition-all cursor-pointer">
+                <div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i class="fa fa-file-text-o text-primary text-xl"></i>
+                </div>
+                <p class="text-sm text-gray-800">文件上传</p>
+                <p class="text-xs text-gray-500 mt-1">PDF/图片格式</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文件上传核心区域（仿APP样式） -->
+          <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+            <h2 class="font-medium text-gray-800 mb-3 flex items-center">
+              <i class="fa fa-cloud-upload text-primary mr-2"></i>
+              上传报告文件
+            </h2>
+            
+            <!-- 上传提示 -->
+            <p class="text-xs text-gray-500 mb-3">支持PDF、JPG、PNG格式，单文件最大50MB，可多选</p>
+            
+            <!-- 上传区域（仿APP拖拽+按钮结合样式） -->
+            <div class="border-2 dashed border-gray-300 rounded-lg p-6 text-center mb-4 hover:border-primary transition-colors bg-gray-50/50" id="new-upload-area">
+              <input type="file" id="new-file-upload" class="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple>
+              <i class="fa fa-file-o text-4xl text-gray-400 mb-2"></i>
+              <p class="text-gray-600 mb-2">拖拽文件到此处，或</p>
+              <!-- 独立上传按钮 -->
+              <button id="select-file-btn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-dark transition-colors">
+                <i class="fa fa-plus mr-1"></i> 选择文件
+              </button>
+            </div>
+            
+            <!-- 文件列表 -->
+            <div id="file-list" class="space-y-2 mb-4 hidden">
+              <!-- 文件项动态生成 -->
+            </div>
+            
+            <!-- 批量上传按钮 -->
+            <button id="batch-upload-btn" class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-dark transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+              <i class="fa fa-upload mr-1"></i> 开始上传
+            </button>
+          </div>
+          
+          <!-- 报告信息填写 -->
+          <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+            <h2 class="font-medium text-gray-800 mb-3 flex items-center">
+              <i class="fa fa-pencil text-primary mr-2"></i>
+              报告基本信息
+            </h2>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">报告类型 <span class="text-danger">*</span></label>
+                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus text-sm">
+                  <option value="">请选择报告类型</option>
+                  <option value="annual">年度体检报告</option>
+                  <option value="blood">血常规检查报告</option>
+                  <option value="liver">肝功能检查报告</option>
+                  <option value="urine">尿常规检查报告</option>
+                  <option value="other">其他报告</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">检查日期 <span class="text-danger">*</span></label>
+                <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus text-sm">
+              </div>
+              
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">检查机构 <span class="text-danger">*</span></label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus text-sm" placeholder="请输入医院/体检中心名称">
+              </div>
+              
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">备注（选填）</label>
+                <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus text-sm h-16" placeholder="请输入报告相关备注信息"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 上传说明 -->
+          <div class="bg-white rounded-lg p-4 card-shadow">
+            <h3 class="font-medium text-gray-800 mb-2 flex items-center">
+              <i class="fa fa-info-circle text-primary mr-2"></i>
+              上传说明
+            </h3>
+            <ul class="text-sm text-gray-700 space-y-2 pl-6 list-disc">
+              <li>上传的报告将进行AI智能解读，生成结构化数据</li>
+              <li>支持多张图片拼接上传，系统会自动合并为一份报告</li>
+              <li>报告上传后将加密存储，仅您本人可查看</li>
+              <li>如需删除已上传的报告，可在报告列表中操作</li>
+            </ul>
+          </div>
+          
+          <!-- 提交按钮（底部固定） -->
+          <div class="fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200" style="width: 390px;">
+            <button id="final-submit-btn" class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-dark transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+              确认同步报告
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 个人中心页面 -->
+      <section id="profile-page" class="hidden">
+        <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+          <div class="flex items-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl mr-4">
+              <i class="fa fa-user"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-xl text-gray-800" id="user-name">用户名</h2>
+              <p class="text-sm text-gray-500" id="user-phone">手机号</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-neutral rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold text-primary mb-1">3</p>
+              <p class="text-sm text-gray-600">当前用药</p>
+            </div>
+            <div class="bg-neutral rounded-lg p-3 text-center">
+              <p class="text-2xl font-bold text-secondary mb-1">8</p>
+              <p class="text-sm text-gray-600">检查报告</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 card-shadow mb-4">
+          <h2 class="font-bold text-lg text-gray-800 mb-3">账户管理</h2>
+          <div class="space-y-3">
+            <a href="#" class="flex items-center justify-between p-2 hover:bg-neutral rounded-lg transition-colors">
+              <div class="flex items-center">
+                <i class="fa fa-key text-primary mr-3"></i>
+                <span>修改密码</span>
+              </div>
+              <i class="fa fa-chevron-right text-gray-400"></i>
+            </a>
+            <a href="#" class="flex items-center justify-between p-2 hover:bg-neutral rounded-lg transition-colors">
+              <div class="flex items-center">
+                <i class="fa fa-bell text-primary mr-3"></i>
+                <span>消息通知</span>
+              </div>
+              <i class="fa fa-chevron-right text-gray-400"></i>
+            </a>
+            <a href="#" class="flex items-center justify-between p-2 hover:bg-neutral rounded-lg transition-colors">
+              <div class="flex items-center">
+                <i class="fa fa-shield text-primary mr-3"></i>
+                <span>隐私设置</span>
+              </div>
+              <i class="fa fa-chevron-right text-gray-400"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 card-shadow">
+          <h2 class="font-bold text-lg text-gray-800 mb-3">更多选项</h2>
+          <div class="space-y-3">
+            <a href="#" class="flex items-center justify-between p-2 hover:bg-neutral rounded-lg transition-colors">
+              <div class="flex items-center">
+                <i class="fa fa-question-circle text-primary mr-3"></i>
+                <span>帮助中心</span>
+              </div>
+              <i class="fa fa-chevron-right text-gray-400"></i>
+            </a>
+            <a href="#" class="flex items-center justify-between p-2 hover:bg-neutral rounded-lg transition-colors">
+              <div class="flex items-center">
+                <i class="fa fa-headphones text-primary mr-3"></i>
+                <span>联系客服</span>
+              </div>
+              <i class="fa fa-chevron-right text-gray-400"></i>
+            </a>
+            <button id="logout-btn" class="w-full flex items-center justify-between p-2 hover:bg-neutral rounded-lg transition-colors text-danger">
+              <div class="flex items-center">
+                <i class="fa fa-sign-out text-danger mr-3"></i>
+                <span>退出登录</span>
+              </div>
+              <i class="fa fa-chevron-right text-gray-400"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <!-- 底部导航栏 -->
+    <nav class="bg-white border-t border-gray-200 px-2 py-1 z-10">
+      <div class="grid grid-cols-4 gap-1 h-full">
+        <button id="nav-home" class="nav-active flex flex-col items-center justify-center py-2 text-sm">
+          <i class="fa fa-home text-lg mb-1"></i>
+          <span>首页</span>
+        </button>
+        <button id="nav-ai" class="flex flex-col items-center justify-center py-2 text-sm text-gray-600">
+          <i class="fa fa-comments text-lg mb-1"></i>
+          <span>AI助手</span>
+        </button>
+        <button id="nav-report" class="flex flex-col items-center justify-center py-2 text-sm text-gray-600">
+          <i class="fa fa-file-text text-lg mb-1"></i>
+          <span>身体报告</span>
+        </button>
+        <button id="nav-profile" class="flex flex-col items-center justify-center py-2 text-sm text-gray-600">
+          <i class="fa fa-user text-lg mb-1"></i>
+          <span>我的</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 报告详情弹窗 -->
+  <div id="report-modal" class="report-modal">
+    <div class="report-modal-content">
+      <!-- 关闭按钮 -->
+      <button id="close-modal" class="modal-close">
+        <i class="fa fa-times"></i>
+      </button>
+      
+      <!-- 报告内容容器 -->
+      <div id="report-content"></div>
+    </div>
+  </div>
+
+  <!-- 上传成功提示弹窗 -->
+  <div id="upload-success-modal" class="fixed top-0 left-0 right-0 bottom-0 bg-black/50 flex items-center justify-center z-50 hidden" style="width: 390px;">
+    <div class="bg-white rounded-lg p-6 max-w-[280px] text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fa fa-check text-2xl text-green-500"></i>
+      </div>
+      <h3 class="font-medium text-lg text-gray-800 mb-2">上传成功！</h3>
+      <p class="text-sm text-gray-600 mb-4">报告已同步，系统将在5分钟内完成解析</p>
+      <button id="success-confirm-btn" class="w-full bg-primary text-white py-2 rounded-lg font-medium">
+        确认
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript逻辑 -->
+  <script>
+    // DOM元素获取
+    const loginPage = document.getElementById('login-page');
+    const registerPage = document.getElementById('register-page');
+    const appMain = document.getElementById('app-main');
+    const reportModal = document.getElementById('report-modal');
+    const reportContent = document.getElementById('report-content');
+    const closeModal = document.getElementById('close-modal');
+    
+    // 上传报告相关元素
+    const syncReportBtn = document.getElementById('sync-report-btn');
+    const reportPage = document.getElementById('report-page');
+    const uploadReportPage = document.getElementById('upload-report-page');
+    const uploadBackBtn = document.getElementById('upload-back-btn');
+    const newUploadArea = document.getElementById('new-upload-area');
+    const newFileUpload = document.getElementById('new-file-upload');
+    const selectFileBtn = document.getElementById('select-file-btn');
+    const fileList = document.getElementById('file-list');
+    const batchUploadBtn = document.getElementById('batch-upload-btn');
+    const finalSubmitBtn = document.getElementById('final-submit-btn');
+    const uploadSuccessModal = document.getElementById('upload-success-modal');
+    const successConfirmBtn = document.getElementById('success-confirm-btn');
+    
+    // 初始化：确保登录页面显示，其他页面隐藏
+    function initPageDisplay() {
+      // 确保登录页面显示
+      loginPage.style.display = 'flex';
+      
+      // 确保注册页面隐藏
+      registerPage.style.display = 'none';
+      
+      // 确保主应用隐藏
+      appMain.style.display = 'none';
+      
+      // 检查是否有登录状态（用于调试）
+      console.log('初始状态 - localStorage user:', localStorage.getItem('user'));
+    }
+    
+    // 登录/注册切换
+    document.getElementById('to-register').addEventListener('click', (e) => {
+      e.preventDefault();
+      loginPage.style.display = 'none';
+      registerPage.style.display = 'flex';
+    });
+    
+    document.getElementById('to-login').addEventListener('click', (e) => {
+      e.preventDefault();
+      registerPage.style.display = 'none';
+      loginPage.style.display = 'flex';
+    });
+    
+    // 登录表单提交
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      
+      // 模拟登录验证
+      if (username && password) {
+        // 存储用户信息
+        localStorage.setItem('user', JSON.stringify({
+          username: username,
+          phone: '138****8888'
+        }));
+        
+        // 更新个人中心信息
+        document.getElementById('user-name').textContent = username;
+        document.getElementById('user-phone').textContent = '138****8888';
+        
+        // 切换到主应用界面
+        loginPage.style.display = 'none';
+        appMain.style.display = 'flex';
+        
+        // 重置表单
+        document.getElementById('login-form').reset();
+      } else {
+        alert('请输入用户名和密码');
+      }
+    });
+    
+    // 注册表单提交
+    document.getElementById('register-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('reg-username').value;
+      const phone = document.getElementById('reg-phone').value;
+      const password = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-confirm').value;
+      
+      // 简单验证
+      if (!username || !phone || !password || !confirm) {
+        alert('请填写所有必填项');
+        return;
+      }
+      
+      if (password !== confirm) {
+        alert('两次输入的密码不一致');
+        return;
+      }
+      
+      if (phone.length !== 11) {
+        alert('请输入有效的11位手机号码');
+        return;
+      }
+      
+      // 模拟注册成功
+      alert('注册成功！请登录');
+      registerPage.style.display = 'none';
+      loginPage.style.display = 'flex';
+      
+      // 自动填充用户名
+      document.getElementById('login-username').value = username;
+      
+      // 重置注册表单
+      document.getElementById('register-form').reset();
+    });
+    
+    // 底部导航切换
+    const navButtons = [
+      { id: 'nav-home', page: 'home-page', title: '今日用药提醒' },
+      { id: 'nav-ai', page: 'ai-assistant-page', title: 'AI药品助手' },
+      { id: 'nav-report', page: 'report-page', title: '身体报告' },
+      { id: 'nav-profile', page: 'profile-page', title: '个人中心' }
+    ];
+    
+    // 页面内容区域
+    const contentPages = {
+      'home-page': document.getElementById('home-page'),
+      'ai-assistant-page': document.getElementById('ai-assistant-page'),
+      'report-page': document.getElementById('report-page'),
+      'profile-page': document.getElementById('profile-page'),
+      'upload-report-page': document.getElementById('upload-report-page')
+    };
+    
+    // 初始化导航事件 - 修复版本
+    navButtons.forEach(item => {
+      document.getElementById(item.id).addEventListener('click', () => {
+        // 更新导航样式
+        navButtons.forEach(btn => {
+          document.getElementById(btn.id).classList.remove('nav-active');
+          document.getElementById(btn.id).classList.add('text-gray-600');
+        });
+        
+        document.getElementById(item.id).classList.add('nav-active');
+        document.getElementById(item.id).classList.remove('text-gray-600');
+        
+        // 更新页面标题
+        document.getElementById('page-title').textContent = item.title;
+        
+        // 切换内容页面 - 使用classList来控制显示/隐藏
+        Object.keys(contentPages).forEach(page => {
+          contentPages[page].classList.add('hidden');
+        });
+        contentPages[item.page].classList.remove('hidden');
+        
+        // 滚动到顶部
+        document.querySelector('main').scrollTop = 0;
+      });
+    });
+    
+    // AI助手聊天功能
+    document.getElementById('chat-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      const chatMessages = document.getElementById('chat-messages');
+      
+      // 添加用户消息
+      const userMessage = document.createElement('div');
+      userMessage.className = 'flex items-start justify-end';
+      userMessage.innerHTML = `
+        <div class="bg-primary/10 rounded-lg px-4 py-2 max-w-[80%]">
+          <p class="text-gray-800">${message}</p>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 ml-2">
+          <i class="fa fa-user"></i>
+        </div>
+      `;
+      chatMessages.appendChild(userMessage);
+      
+      // 清空输入框
+      input.value = '';
+      
+      // 模拟AI回复
+      setTimeout(() => {
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'flex items-start';
+        
+        // 根据问题类型生成不同回复
+        let reply = '';
+        if (message.includes('布洛芬')) {
+          reply = '布洛芬缓释胶囊主要用于缓解轻至中度疼痛如头痛、关节痛等，也用于普通感冒或流行性感冒引起的发热。成人一次1粒，一日2次（早晚各一次）。';
+        } else if (message.includes('用药指导') || message.includes('指导')) {
+          reply = '用药前请仔细阅读药品说明书，按医嘱或说明书剂量服用。如正在使用其他药品，使用本品前请咨询医师或药师。';
+        } else if (message.includes('查询') || message.includes('信息')) {
+          reply = '您可以告诉我具体想查询的药品名称，我会为您提供详细的药品信息，包括适应症、用法用量、不良反应等。';
+        } else {
+          reply = '感谢您的提问！药品使用请严格遵循医嘱，如有不适请及时就医。如需具体药品信息，请告诉我药品名称。';
+        }
+        
+        aiMessage.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white mr-2">
+            <i class="fa fa-robot"></i>
+          </div>
+          <div class="bg-gray-100 rounded-lg px-4 py-2 max-w-[80%]">
+            <p class="text-gray-800">${reply}</p>
+          </div>
+        `;
+        chatMessages.appendChild(aiMessage);
+        
+        // 滚动到底部
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 1000);
+      
+      // 滚动到底部
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+    
+    // 退出登录 - 修复后的版本
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (confirm('确定要退出登录吗？')) {
+        // 清除用户登录状态
+        localStorage.removeItem('user');
+        
+        // 隐藏主应用
+        appMain.style.display = 'none';
+        
+        // 显示登录页面
+        loginPage.style.display = 'flex';
+        registerPage.style.display = 'none';
+        
+        // 清空登录表单
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
+        
+        // 重置导航到首页
+        navButtons.forEach(btn => {
+          document.getElementById(btn.id).classList.remove('nav-active');
+          document.getElementById(btn.id).classList.add('text-gray-600');
+        });
+        document.getElementById('nav-home').classList.add('nav-active');
+        document.getElementById('nav-home').classList.remove('text-gray-600');
+        
+        // 切换到首页
+        Object.keys(contentPages).forEach(page => {
+          contentPages[page].classList.add('hidden');
+        });
+        contentPages['home-page'].classList.remove('hidden');
+        document.getElementById('page-title').textContent = '今日用药提醒';
+        
+        console.log('已退出登录，返回登录页面');
+      }
+    });
+
+    // 生成年度体检报告
+    function generateAnnualReport() {
+      return `
+        <div class="space-y-4">
+          <!-- 报告头部 -->
+          <div class="text-center border-b border-gray-200 pb-3 mb-3">
+            <h2 class="text-xl font-bold text-gray-800 mb-1">2025年度健康体检报告</h2>
+            <div class="flex justify-center items-center text-sm text-gray-600 space-x-4">
+              <span><i class="fa fa-hospital-o mr-1"></i> 市第一人民医院体检中心</span>
+              <span><i class="fa fa-calendar mr-1"></i> 2025-11-20</span>
+            </div>
+            <div class="mt-2 text-sm">
+              <span class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">体检编号：TJ202511200088</span>
+            </div>
+          </div>
+          
+          <!-- 基本信息 -->
+          <div class="bg-gray-50 p-3 rounded-lg">
+            <h3 class="font-medium text-gray-800 mb-2">一、基本信息</h3>
+            <table class="report-table">
+              <tr>
+                <td class="report-td w-1/3">张三</td>
+                <td class="report-td">${localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).username : '用户'}</td>
+              </tr>
+              <tr>
+                <td class="report-td">性别</td>
+                <td class="report-td">男</td>
+              </tr>
+              <tr>
+                <td class="report-td">年龄</td>
+                <td class="report-td">35岁</td>
+              </tr>
+              <tr>
+                <td class="report-td">身高/体重</td>
+                <td class="report-td">175cm / 72kg (BMI: 23.5)</td>
+              </tr>
+              <tr>
+                <td class="report-td">联系方式</td>
+                <td class="report-td">138****8888</td>
+              </tr>
+            </table>
+          </div>
+          
+          <!-- 体检项目汇总 -->
+          <div>
+            <h3 class="font-medium text-gray-800 mb-2">二、体检项目汇总</h3>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+              <div class="bg-green-50 border border-green-100 p-2 rounded-lg text-center">
+                <p class="text-lg font-bold text-normal">28</p>
+                <p class="text-xs text-gray-600">检查项目总数</p>
+              </div>
+              <div class="bg-green-50 border border-green-100 p-2 rounded-lg text-center">
+                <p class="text-lg font-bold text-normal">25</p>
+                <p class="text-xs text-gray-600">正常项目数</p>
+              </div>
+              <div class="bg-yellow-50 border border-yellow-100 p-2 rounded-lg text-center">
+                <p class="text-lg font-bold text-warning">3</p>
+                <p class="text-xs text-gray-600">异常/需关注项目</p>
+              </div>
+              <div class="bg-blue-50 border border-blue-100 p-2 rounded-lg text-center">
+                <p class="text-lg font-bold text-primary">96.4%</p>
+                <p class="text-xs text-gray-600">整体健康评分</p>
+              </div>
+            </div>
+            
+            <!-- 异常项目 -->
+            <div class="bg-warning/10 border-l-4 border-warning p-3 rounded-r-lg mb-3">
+              <h4 class="font-medium text-gray-800 mb-1">异常项目提示</h4>
+              <ul class="text-sm space-y-1 text-gray-700">
+                <li>• 血常规：血红蛋白略低（125g/L），提示轻微贫血</li>
+                <li>• 血脂：甘油三酯轻度升高（1.85mmol/L）</li>
+                <li>• 尿常规：尿潜血 ±，建议复查</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 各系统检查结果 -->
+          <div class="space-y-3">
+            <div>
+              <h4 class="font-medium text-gray-800 flex items-center">
+                <i class="fa fa-heartbeat text-primary mr-2"></i>
+                心血管系统
+              </h4>
+              <div class="ml-6 mt-2 text-sm text-gray-700">
+                <p>• 血压：125/80 mmHg（正常）</p>
+                <p>• 心率：72 次/分（正常）</p>
+                <p>• 心电图：窦性心律，正常心电图</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 class="font-medium text-gray-800 flex items-center">
+                <i class="fa fa-stethoscope text-primary mr-2"></i>
+                呼吸系统
+              </h4>
+              <div class="ml-6 mt-2 text-sm text-gray-700">
+                <p>• 胸部DR：双肺纹理清晰，未见明显异常</p>
+                <p>• 肺功能：通气功能正常</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 class="font-medium text-gray-800 flex items-center">
+                <i class="fa fa-medkit text-primary mr-2"></i>
+                消化系统
+              </h4>
+              <div class="ml-6 mt-2 text-sm text-gray-700">
+                <p>• 腹部B超：肝、胆、胰、脾未见明显异常</p>
+                <p>• 肝功能：ALT 28 U/L，AST 25 U/L（正常）</p>
+                <p>• 胃镜：浅表性胃炎，建议饮食调理</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 医生建议 -->
+          <div class="bg-primary/5 p-3 rounded-lg">
+            <h3 class="font-medium text-gray-800 mb-2 flex items-center">
+              <i class="fa fa-user-md text-primary mr-2"></i>
+              医生综合建议
+            </h3>
+            <div class="text-sm text-gray-700 space-y-2">
+              <p>1. 针对轻微贫血：增加含铁食物摄入（红肉、动物肝脏、菠菜等），补充维生素C促进铁吸收，3个月后复查血常规。</p>
+              <p>2. 针对甘油三酯升高：控制饮食，减少高脂肪、高糖分食物摄入，增加有氧运动，建议每周至少150分钟中等强度运动。</p>
+              <p>3. 尿潜血±：建议多饮水，避免憋尿，1个月后复查尿常规。</p>
+              <p>4. 生活方式：保持规律作息，避免熬夜，戒烟限酒，保持良好心态。</p>
+              <p>5. 定期复查：建议6个月后进行一次健康复查，重点关注血常规、血脂、尿常规指标。</p>
+            </div>
+          </div>
+          
+          <!-- 报告底部 -->
+          <div class="text-center text-xs text-gray-500 mt-4 pt-3 border-t border-gray-200">
+            <p>本报告仅作为健康参考，如有不适请及时就医</p>
+            <p class="mt-1">医师签名：张医生 | 审核日期：2025-11-22</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // 生成血常规报告
+    function generateBloodReport() {
+      return `
+        <div class="space-y-4">
+          <!-- 报告头部 -->
+          <div class="text-center border-b border-gray-200 pb-3 mb-3">
+            <h2 class="text-xl font-bold text-gray-800 mb-1">血常规检查报告</h2>
+            <div class="flex justify-center items-center text-sm text-gray-600 space-x-4">
+              <span><i class="fa fa-hospital-o mr-1"></i> 市中心医院检验科</span>
+              <span><i class="fa fa-calendar mr-1"></i> 2025-10-15</span>
+            </div>
+            <div class="mt-2 text-sm">
+              <span class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">检验编号：JY202510150126</span>
+            </div>
+          </div>
+          
+          <!-- 基本信息 -->
+          <div class="bg-gray-50 p-3 rounded-lg mb-3">
+            <table class="report-table">
+              <tr>
+                <td class="report-td w-1/3">张三</td>
+                <td class="report-td">${localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).username : '用户'}</td>
+              </tr>
+              <tr>
+                <td class="report-td">性别/年龄</td>
+                <td class="report-td">男 / 35岁</td>
+              </tr>
+              <tr>
+                <td class="report-td">申请科室</td>
+                <td class="report-td">全科门诊</td>
+              </tr>
+              <tr>
+                <td class="report-td">申请医生</td>
+                <td class="report-td">李医生</td>
+              </tr>
+            </table>
+          </div>
+          
+          <!-- 血常规检测结果 -->
+          <div>
+            <h3 class="font-medium text-gray-800 mb-2">血常规检测结果</h3>
+            <div class="overflow-x-auto">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th class="report-th">检测项目</th>
+                    <th class="report-th">结果</th>
+                    <th class="report-th">参考范围</th>
+                    <th class="report-th">单位</th>
+                    <th class="report-th">状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="report-td">白细胞计数(WBC)</td>
+                    <td class="report-td">6.5</td>
+                    <td class="report-td">3.5-9.5</td>
+                    <td class="report-td">×10^9/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">红细胞计数(RBC)</td>
+                    <td class="report-td">4.5</td>
+                    <td class="report-td">4.3-5.8</td>
+                    <td class="report-td">×10^12/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">血红蛋白(HGB)</td>
+                    <td class="report-td">125</td>
+                    <td class="report-td">130-175</td>
+                    <td class="report-td">g/L</td>
+                    <td class="report-td text-abnormal">偏低</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">红细胞压积(HCT)</td>
+                    <td class="report-td">38.5</td>
+                    <td class="report-td">40.0-50.0</td>
+                    <td class="report-td">%</td>
+                    <td class="report-td text-abnormal">偏低</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">血小板计数(PLT)</td>
+                    <td class="report-td">225</td>
+                    <td class="report-td">100-300</td>
+                    <td class="report-td">×10^9/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">淋巴细胞百分比(LY%)</td>
+                    <td class="report-td">35.2</td>
+                    <td class="report-td">20.0-50.0</td>
+                    <td class="report-td">%</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">中性粒细胞百分比(NE%)</td>
+                    <td class="report-td">58.6</td>
+                    <td class="report-td">40.0-75.0</td>
+                    <td class="report-td">%</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">红细胞平均体积(MCV)</td>
+                    <td class="report-td">85.6</td>
+                    <td class="report-td">82.0-100.0</td>
+                    <td class="report-td">fL</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">平均血红蛋白含量(MCH)</td>
+                    <td class="report-td">27.8</td>
+                    <td class="report-td">27.0-34.0</td>
+                    <td class="report-td">pg</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">平均血红蛋白浓度(MCHC)</td>
+                    <td class="report-td">325</td>
+                    <td class="report-td">316-354</td>
+                    <td class="report-td">g/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- 检验结论 -->
+          <div class="bg-primary/5 p-3 rounded-lg mt-4">
+            <h4 class="font-medium text-gray-800 mb-2">检验结论</h4>
+            <div class="text-sm text-gray-700 space-y-1">
+              <p>1. 白细胞、血小板等指标正常，未见感染、出血倾向等异常。</p>
+              <p>2. 血红蛋白（125g/L）及红细胞压积（38.5%）略低于正常参考值，提示轻度缺铁性贫血可能。</p>
+              <p>3. 红细胞相关其他指标正常，暂不支持地中海贫血等其他类型贫血诊断。</p>
+              <p>4. 建议：</p>
+              <ul class="list-disc pl-5 text-xs">
+                <li>增加含铁食物摄入（红肉、动物肝脏、菠菜、黑木耳等）</li>
+                <li>补充维生素C（新鲜蔬果）促进铁吸收</li>
+                <li>避免浓茶、咖啡与铁剂/含铁食物同服</li>
+                <li>3个月后复查血常规</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 报告审核信息 -->
+          <div class="text-xs text-gray-500 mt-4 pt-2 border-t border-gray-200">
+            <p class="flex justify-between">
+              <span>检验师：王技师</span>
+              <span>审核师：刘主任</span>
+            </p>
+            <p class="text-center mt-1">报告时间：2025-10-15 14:28</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // 生成肝功能报告
+    function generateLiverReport() {
+      return `
+        <div class="space-y-4">
+          <!-- 报告头部 -->
+          <div class="text-center border-b border-gray-200 pb-3 mb-3">
+            <h2 class="text-xl font-bold text-gray-800 mb-1">肝功能检查报告</h2>
+            <div class="flex justify-center items-center text-sm text-gray-600 space-x-4">
+              <span><i class="fa fa-hospital-o mr-1"></i> 市中医院检验科</span>
+              <span><i class="fa fa-calendar mr-1"></i> 2025-09-05</span>
+            </div>
+            <div class="mt-2 text-sm">
+              <span class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">检验编号：JY202509050078</span>
+            </div>
+          </div>
+          
+          <!-- 基本信息 -->
+          <div class="bg-gray-50 p-3 rounded-lg mb-3">
+            <table class="report-table">
+              <tr>
+                <td class="report-td w-1/3">姓名</td>
+                <td class="report-td">${localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).username : '用户'}</td>
+              </tr>
+              <tr>
+                <td class="report-td">性别/年龄</td>
+                <td class="report-td">男 / 35岁</td>
+              </tr>
+              <tr>
+                <td class="report-td">申请科室</td>
+                <td class="report-td">消化内科</td>
+              </tr>
+              <tr>
+                <td class="report-td">申请医生</td>
+                <td class="report-td">陈医生</td>
+              </tr>
+            </table>
+          </div>
+          
+          <!-- 肝功能检测结果 -->
+          <div>
+            <h3 class="font-medium text-gray-800 mb-2">肝功能检测结果</h3>
+            <div class="overflow-x-auto">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th class="report-th">检测项目</th>
+                    <th class="report-th">结果</th>
+                    <th class="report-th">参考范围</th>
+                    <th class="report-th">单位</th>
+                    <th class="report-th">状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="report-td">谷丙转氨酶(ALT)</td>
+                    <td class="report-td">28</td>
+                    <td class="report-td">0-40</td>
+                    <td class="report-td">U/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">谷草转氨酶(AST)</td>
+                    <td class="report-td">25</td>
+                    <td class="report-td">0-40</td>
+                    <td class="report-td">U/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">总胆红素(TBIL)</td>
+                    <td class="report-td">12.5</td>
+                    <td class="report-td">5.1-19.0</td>
+                    <td class="report-td">μmol/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">直接胆红素(DBIL)</td>
+                    <td class="report-td">3.8</td>
+                    <td class="report-td">0-6.8</td>
+                    <td class="report-td">μmol/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">总蛋白(TP)</td>
+                    <td class="report-td">72.5</td>
+                    <td class="report-td">65-85</td>
+                    <td class="report-td">g/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">白蛋白(ALB)</td>
+                    <td class="report-td">45.2</td>
+                    <td class="report-td">40-55</td>
+                    <td class="report-td">g/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">球蛋白(GLB)</td>
+                    <td class="report-td">27.3</td>
+                    <td class="report-td">20-35</td>
+                    <td class="report-td">g/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">白球比(A/G)</td>
+                    <td class="report-td">1.66</td>
+                    <td class="report-td">1.2-2.4</td>
+                    <td class="report-td">-</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">碱性磷酸酶(ALP)</td>
+                    <td class="report-td">85</td>
+                    <td class="report-td">45-125</td>
+                    <td class="report-td">U/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                  <tr>
+                    <td class="report-td">γ-谷氨酰转肽酶(GGT)</td>
+                    <td class="report-td">32</td>
+                    <td class="report-td">10-60</td>
+                    <td class="report-td">U/L</td>
+                    <td class="report-td text-normal">正常</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- 检验结论 -->
+          <div class="bg-primary/5 p-3 rounded-lg mt-4">
+            <h4 class="font-medium text-gray-800 mb-2">检验结论</h4>
+            <div class="text-sm text-gray-700 space-y-1">
+              <p>1. 各项肝功能指标（转氨酶、胆红素、蛋白等）均在正常参考范围内，未见明显肝功能异常。</p>
+              <p>2. 肝酶学指标正常，排除肝细胞损伤、胆道梗阻等肝脏疾病可能。</p>
+              <p>3. 蛋白代谢指标正常，提示肝脏合成功能良好。</p>
+              <p>4. 建议：</p>
+              <ul class="list-disc pl-5 text-xs">
+                <li>保持健康生活方式，避免过量饮酒</li>
+                <li>避免滥用药物，减少肝脏代谢负担</li>
+                <li>均衡饮食，适量运动，定期体检</li>
+                <li>如有肝区不适、黄疸等症状，及时就医</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 报告审核信息 -->
+          <div class="text-xs text-gray-500 mt-4 pt-2 border-t border-gray-200">
+            <p class="flex justify-between">
+              <span>检验师：陈技师</span>
+              <span>审核师：赵主任</span>
+            </p>
+            <p class="text-center mt-1">报告时间：2025-09-05 10:15</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // 打开报告详情弹窗
+    document.querySelectorAll('.view-report').forEach(button => {
+      button.addEventListener('click', function() {
+        const reportType = this.getAttribute('data-report-type');
+        let reportHtml = '';
+        
+        // 根据报告类型生成对应内容
+        switch(reportType) {
+          case 'annual':
+            reportHtml = generateAnnualReport();
+            break;
+          case 'blood':
+            reportHtml = generateBloodReport();
+            break;
+          case 'liver':
+            reportHtml = generateLiverReport();
+            break;
+          default:
+            reportHtml = '<div class="text-center py-8"><p class="text-gray-600">暂无报告数据</p></div>';
+        }
+        
+        // 填充报告内容并显示弹窗
+        reportContent.innerHTML = reportHtml;
+        reportModal.classList.add('show');
+        reportModal.style.display = 'flex';
+        
+        // 禁止背景滚动
+        document.querySelector('main').style.overflow = 'hidden';
+        
+        // 滚动到弹窗顶部
+        reportModal.scrollTop = 0;
+      });
+    });
+
+    // 关闭报告弹窗
+    closeModal.addEventListener('click', function() {
+      reportModal.classList.remove('show');
+      reportModal.style.display = 'none';
+      // 恢复背景滚动
+      document.querySelector('main').style.overflow = 'auto';
+    });
+
+    // 点击弹窗外部关闭
+    reportModal.addEventListener('click', function(e) {
+      if (e.target === reportModal) {
+        reportModal.classList.remove('show');
+        reportModal.style.display = 'none';
+        document.querySelector('main').style.overflow = 'auto';
+      }
+    });
+
+    // 同步报告按钮点击事件（跳转上传页面）- 修复版本
+    syncReportBtn.addEventListener('click', function() {
+      console.log('点击了同步报告按钮');
+      
+      // 隐藏报告列表
+      reportPage.classList.add('hidden');
+      
+      // 显示上传页面
+      uploadReportPage.classList.remove('hidden');
+      
+      // 更新页面标题
+      document.getElementById('page-title').textContent = '同步体检报告';
+      
+      // 滚动到顶部
+      document.querySelector('main').scrollTop = 0;
+      
+      console.log('已切换到上传报告页面');
+    });
+
+    // 上传页面返回按钮逻辑 - 确保正确绑定事件
+    if (uploadBackBtn) {
+      uploadBackBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('点击了上传页面返回按钮');
+        
+        // 确认退出上传
+        if (fileList.classList.contains('show')) {
+          if (!confirm('您有未上传的文件，确定要返回吗？')) {
+            return;
+          }
+        }
+        
+        // 隐藏上传页面
+        uploadReportPage.classList.add('hidden');
+        
+        // 显示报告列表
+        reportPage.classList.remove('hidden');
+        
+        // 更新页面标题
+        document.getElementById('page-title').textContent = '身体报告';
+        
+        // 滚动到顶部
+        document.querySelector('main').scrollTop = 0;
+        
+        console.log('已返回报告列表页面');
+      });
+    } else {
+      console.error('上传返回按钮元素未找到！');
+    }
+    
+    // 2. 选择文件按钮逻辑（独立上传按钮）
+    if (selectFileBtn) {
+      selectFileBtn.addEventListener('click', function() {
+        newFileUpload.click();
+      });
+    }
+    
+    // 3. 拖拽上传逻辑（仿APP体验）
+    if (newUploadArea) {
+      newUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        newUploadArea.classList.add('border-primary');
+        newUploadArea.classList.add('bg-primary/5');
+      });
+      
+      newUploadArea.addEventListener('dragleave', function() {
+        newUploadArea.classList.remove('border-primary');
+        newUploadArea.classList.remove('bg-primary/5');
+      });
+      
+      newUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        newUploadArea.classList.remove('border-primary');
+        newUploadArea.classList.remove('bg-primary/5');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFiles(files);
+        }
+      });
+    }
+    
+    // 4. 文件选择处理逻辑（仿APP文件队列）
+    if (newFileUpload) {
+      newFileUpload.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files.length > 0) {
+          handleFiles(files);
+        }
+      });
+    }
+    
+    // 处理选择的文件
+    function handleFiles(files) {
+      // 清空原有文件列表
+      fileList.innerHTML = '';
+      fileList.classList.remove('hidden');
+      fileList.classList.add('show');
+      
+      // 启用上传按钮
+      batchUploadBtn.disabled = false;
+      finalSubmitBtn.disabled = false;
+      
+      // 遍历文件生成列表项
+      Array.from(files).forEach((file, index) => {
+        const fileSize = formatFileSize(file.size);
+        const fileType = file.type.includes('pdf') ? 'file-pdf-o' : 
+                         file.type.includes('image') ? 'file-image-o' : 'file-text-o';
+        
+        // 创建文件项
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item flex items-center p-3 bg-gray-50 rounded-lg';
+        fileItem.innerHTML = `
+          <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary mr-3">
+            <i class="fa fa-${fileType}"></i>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <p class="text-sm text-gray-800 truncate">${file.name}</p>
+            <div class="w-full h-1.5 bg-gray-200 rounded-full mt-1">
+              <div class="upload-progress h-1.5 bg-primary rounded-full" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1 flex justify-between">
+              <span>${fileSize} / 50MB</span>
+              <span class="upload-percent">0%</span>
+            </p>
+          </div>
+          <button class="remove-file-item ml-2 text-gray-400 hover:text-danger" data-index="${index}">
+            <i class="fa fa-times"></i>
+          </button>
+        `;
+        
+        fileList.appendChild(fileItem);
+        
+        // 移除文件项事件
+        fileItem.querySelector('.remove-file-item').addEventListener('click', function() {
+          fileItem.remove();
+          // 检查是否还有文件
+          if (fileList.children.length === 0) {
+            fileList.classList.add('hidden');
+            fileList.classList.remove('show');
+            batchUploadBtn.disabled = true;
+            finalSubmitBtn.disabled = true;
+          }
+        });
+      });
+    }
+    
+    // 5. 批量上传按钮逻辑（仿APP上传进度）
+    if (batchUploadBtn) {
+      batchUploadBtn.addEventListener('click', function() {
+        // 禁用上传按钮
+        batchUploadBtn.disabled = true;
+        batchUploadBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> 上传中...';
+        
+        // 获取所有进度条
+        const progressBars = document.querySelectorAll('.upload-progress');
+        const percentTexts = document.querySelectorAll('.upload-percent');
+        let progress = 0;
+        
+        // 模拟上传进度
+        const progressInterval = setInterval(() => {
+          progress += Math.floor(Math.random() * 5) + 1;
+          if (progress > 100) progress = 100;
+          
+          // 更新所有进度条
+          progressBars.forEach(bar => {
+            bar.style.width = `${progress}%`;
+          });
+          
+          // 更新百分比
+          percentTexts.forEach(text => {
+            text.textContent = `${progress}%`;
+          });
+          
+          // 上传完成
+          if (progress === 100) {
+            clearInterval(progressInterval);
+            batchUploadBtn.innerHTML = '<i class="fa fa-check mr-1"></i> 上传完成';
+            
+            // 500ms后显示成功弹窗
+            setTimeout(() => {
+              uploadSuccessModal.classList.remove('hidden');
+            }, 500);
+          }
+        }, 200);
+      });
+    }
+    
+    // 6. 上传成功确认逻辑
+    if (successConfirmBtn) {
+      successConfirmBtn.addEventListener('click', function() {
+        uploadSuccessModal.classList.add('hidden');
+        // 返回报告列表
+        uploadReportPage.classList.add('hidden');
+        reportPage.classList.remove('hidden');
+        document.getElementById('page-title').textContent = '身体报告';
+        document.querySelector('main').scrollTop = 0;
+        
+        // 重置上传状态
+        fileList.innerHTML = '';
+        fileList.classList.add('hidden');
+        fileList.classList.remove('show');
+        batchUploadBtn.disabled = true;
+        finalSubmitBtn.disabled = true;
+        batchUploadBtn.innerHTML = '<i class="fa fa-upload mr-1"></i> 开始上传';
+        newFileUpload.value = '';
+      });
+    }
+    
+    // 7. 最终提交按钮逻辑（完整流程）
+    if (finalSubmitBtn) {
+      finalSubmitBtn.addEventListener('click', function() {
+        // 检查必填项
+        const reportType = document.querySelector('select').value;
+        const checkDate = document.querySelector('input[type="date"]').value;
+        const hospital = document.querySelector('input[type="text"][placeholder="请输入医院/体检中心名称"]').value;
+        
+        if (!reportType) {
+          alert('请选择报告类型');
+          return;
+        }
+        if (!checkDate) {
+          alert('请选择检查日期');
+          return;
+        }
+        if (!hospital) {
+          alert('请输入检查机构名称');
+          return;
+        }
+        
+        // 执行上传
+        batchUploadBtn.click();
+      });
+    }
+    
+    // 工具函数：格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    // 页面加载时初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      // 初始化页面显示状态
+      initPageDisplay();
+      
+      // 优化滚动体验
+      const mainContent = document.querySelector('main');
+      mainContent.style.scrollBehavior = 'smooth';
+      
+      // 聊天输入框回车提交
+      document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+        }
+      });
+      
+      // 阻止弹窗内部点击事件冒泡
+      document.querySelector('.report-modal-content')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+      
+      // 初始化弹窗为隐藏状态
+      reportModal.style.display = 'none';
+      uploadSuccessModal.style.display = 'none';
+      
+      // 调试信息
+      console.log('页面加载完成，初始化为登录页面');
+      console.log('上传报告页面元素:', uploadReportPage);
+      console.log('同步报告按钮元素:', syncReportBtn);
+      console.log('上传返回按钮元素:', uploadBackBtn);
+      console.log('上传页面HTML结构:', uploadReportPage?.innerHTML?.substring(0, 500));
+    });
+  </script>
+</body>
+</html>
